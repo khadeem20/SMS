@@ -1,0 +1,11 @@
+Introduction to Data Structures
+Advanced Web Development
+Fundamentals of Artificial Intelligence
+Database Management Systems
+Software Engineering Principles
+Computer Networks and Security
+Mobile Application Development
+Operating Systems Concepts
+Machine Learning Techniques
+Cloud Computing Essentials
+

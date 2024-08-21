@@ -1,0 +1,4 @@
+setup admin
+finish html pages and link them
+figure out how to check if a user is logged in
+adjust homepage to prompt user to login if they currently aren't

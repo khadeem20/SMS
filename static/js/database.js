@@ -10,23 +10,62 @@ const pool = mysql.createPool({
     database:  process.env.MYSQL_DATABASE
 }).promise()
 
-async function login() {
-    pool.query()
+async function login(id, password) {
+    //debugging purposes
+    //console.log("Login function - ID:", id, "Password:", password);
+    const [rows] = await pool.query("SELECT * FROM admin WHERE ID = ?", [id]);
+    
+    if (rows.length === 0) {
+        return { success: false, message: "User not found" };
+    }
+
+    const admin = rows[0];
+    //debuging
+    //console.log("Admin from DB:", admin);
+
+    if (!password || !admin.Password) {
+        return { success: false, message: "Invalid password data" };
+    }
+
+    try {
+        const match = await bcrypt.compare(password, admin.Password);
+        if (match) {
+            return { success: true, admin };
+        } else {
+            return { success: false, message: "Incorrect password" };
+        }
+    } catch (error) {
+        console.error("Error in bcrypt compare:", error);
+        return { success: false, message: "An error occurred during login" };
+    }
 }
 
-async function addAdmin(id, password){
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const newAdmin = await pool.query("INSERT INTO admin(ID, Password) VALUES(?, ?)", [id, hashedPassword]);
-    return { message: "Admin added successfully" };
+
+
+
+async function addAdmin(id, password) {
+    try {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const [newAdmin] = await pool.query("INSERT INTO admin(ID, Password) VALUES(?, ?)", [id, hashedPassword]);
+        console.log('New admin inserted:', newAdmin);
+        return { message: "Admin added successfully" };
+    } catch (error) {
+        console.error('Error in addAdmin:', error.message);
+        throw error; // Re-throw the error to be caught by the route handler
+    }
 }
+
 
 async function isAdminTableEmpty() {
     const [result] = await pool.query("SELECT COUNT(*) as count FROM admin");
     return result[0].count === 0;
 }
 
-
+async function GetAdmin() {
+    const admin = await pool.query("SELECT ID FROM admin;");
+    return admin;
+}
 async function AllStudents(){
     const students = await pool.query("SELECT * FROM student;");
     return students;
@@ -62,7 +101,7 @@ async function GetCourse(cid){
 }
 
 async function GetAllCourses(){
-    const allCourses = await pool.query("SELECT CourseName, CourseID FROM course;");
+    const allCourses = await pool.query("SELECT * FROM course;");
     return allCourses;
 }
 
@@ -126,6 +165,6 @@ async function AllMembers(cid){
 export { login, 
     AddCourse, GetAllCourses, StudentGetCourses,
      LectGetCourses, AssignLect,Register,
-      AllMembers, addAdmin, AllStudents,
+      AllMembers, AllStudents,
        AddStudent, GetStudent, AllLecturers,
-        GetCourse, isAdminTableEmpty }
+        GetCourse, isAdminTableEmpty,addAdmin, GetAdmin };

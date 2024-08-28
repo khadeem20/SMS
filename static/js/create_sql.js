@@ -40,9 +40,9 @@ CREATE TABLE enroll (
 );
 
 CREATE TABLE admin(
-  ID VARCHAR(10),
-  Password VARCHAR(10),
-)
+  ID VARCHAR(20) PRIMARY KEY,
+  Password VARCHAR(255)
+);
 `;
 
   // Read student names from file
@@ -84,4 +84,4 @@ CREATE TABLE admin(
 
 const sqlContent = generateSQL();
 fs.writeFileSync('database_setup.sql', sqlContent);
-console.log('SQL file generated successfully with student, lecturer and course inserts!');
+console.log('SQL file generated successfully with student, lecturer, course inserts and the empty admin table!');

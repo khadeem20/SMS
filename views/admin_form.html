@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Create Admin</h2>
+    <form class="form-setup" method="POST" action="/add-Admin">
+        <div>
+            <label for="id">ID Number:</label>
+            <input type="text" id="id" name="id" size="32" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" size="32" required>
+        </div>
+        <button type="submit">Create Admin</button>
+    </form>
+{% endblock %}
+

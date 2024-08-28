@@ -30,6 +30,11 @@ CREATE TABLE enroll (
   FOREIGN KEY (StudentID) REFERENCES student(StudentID)
 );
 
+CREATE TABLE admin(
+  ID VARCHAR(20) PRIMARY KEY,
+  Password VARCHAR(255)
+);
+
 -- Insert students
 INSERT INTO student (StudentID, Name) VALUES ('6001', 'Lukas Mueller');
 INSERT INTO student (StudentID, Name) VALUES ('6002', 'Sophie Dupont');
@@ -158,3 +163,5 @@ INSERT INTO course (CourseID, CourseName) VALUES ('20007', 'Mobile Application D
 INSERT INTO course (CourseID, CourseName) VALUES ('20008', 'Operating Systems Concepts');
 INSERT INTO course (CourseID, CourseName) VALUES ('20009', 'Machine Learning Techniques');
 INSERT INTO course (CourseID, CourseName) VALUES ('20010', 'Cloud Computing Essentials');
+
+select * from admin;

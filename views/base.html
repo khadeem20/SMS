@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Student Management System{% endblock %}</title>
+    <title>{% block title %}School Management System{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     {% block head %}{% endblock %}
 </head>
 <body>
+    
     <header>
          {% include "header.html" %}
         <!--<nav>
@@ -27,8 +28,7 @@
     <footer>
         <p>© {{ year }} My Website. All rights reserved.</p>
     </footer>
-
-    <script src="/static/js/app.js"></script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,58 @@
+{% extends 'base.html'%}
+{% block content %}
+<ul>
+    <li><a href="">Search</a></li>
+        <form class="search-form" action="/search_student" method="POST">
+            <div>
+                <label for="search">Student Name or ID:</label>
+            <input type="text" name="search" id="search" required>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+    <div> 
+    {% if searchedStudents %}
+        <h3>Search Results for "{{ searchTerm }}":</h3>
+        <ol class="searchedStudents">
+            {% for student in searchedStudents %}
+            <li class="searchedStudent">
+                {{ student.StudentID }} &nbsp;&nbsp; {{ student.Name }}
+            </li>
+            {% endfor %}
+    {% endif %}
+    </div>
+
+    <li>Add Student</li>
+    <form class="add-form" method="POST" action="/add_student">
+        <div>
+            <label for="id">Student ID:</label>
+        <input type="text" name="id" id="id" required>
+
+        </div>
+        <div>
+            <label for="name">Student Name:</label> 
+        <input type="text" name="name" id="name" required>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+    <li><a href="/all_students">All Students</a></li>
+        <ol class="students">
+            {% for student in students %}
+            <li class="student">
+                {{ student.StudentID }} &nbsp;&nbsp; {{ student.Name }}
+                <button class="update-student" data-sid={{ student.StudentID }} data-sname={{ student.Name }}>Update</button>
+                <form id="updateForm-{{ student.StudentID }}" style="display: none;" action="/update_student/{{ student.StudentID }}" method="POST">
+                    <input type="text" name="newName" placeholder="New name">
+                    <button type="submit">Confirm Update</button>
+                </form>
+                <button class="delete-student" data-sid={{ student.StudentID }}>Delete</button>
+
+            </li>
+            
+            {% endfor %}
+        </ol>
+     
+
+    
+</ul>
+{% endblock %}

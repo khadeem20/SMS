@@ -6,10 +6,31 @@ import session from 'express-session';
 
 
 
-import  { login, AddCourse, GetAllCourses,
-     StudentGetCourses,LectGetCourses, AssignLect,
-     Register,AllMembers, AllStudents,AddStudent, GetStudent,
-       AllLecturers,GetCourse, isAdminTableEmpty, addAdmin,GetAdmin }
+import  {login, 
+    AddCourse, 
+    GetAllCourses, 
+    StudentGetCourses,
+    LectGetCourses, 
+    AssignLect,
+    Register,
+    CourseMembers, 
+    AllStudents,
+    AddStudent, 
+    GetStudent, 
+    AllLecturers,
+    GetCourse, 
+    isAdminTableEmpty,
+    addAdmin, 
+    GetAdmin,
+    DeleteStudent,
+    updateStudentInfo,
+    GetLecturer,
+    DeleteLecturer,
+    getLecturerWorkload,
+    DeleteCourse,
+    GetCourseEnrollment,
+    ShowEnroll,
+    searchStudents  }
     from './database.js';
 
 
@@ -63,6 +84,7 @@ app.use((req, res, next) => {
     res.render('admin.html', { courses, students, lecturers });
 });*/
 
+
 app.get('/about', (req, res) => {
     res.render('about.html');
 });
@@ -77,7 +99,10 @@ app.get ("/", async(req, res) => {
 app.get('/admin_form', (req, res) => {
     res.render('admin_form.html');
   });
-  
+
+app.get('/dashboard', isAuthenticated, async (req, res) =>{
+    res.render('dashboard.html');
+})
 app.post('/add-Admin', async (req, res) => {
     const { id, password } = req.body;
     try {
@@ -103,19 +128,19 @@ app.post('/login', async (req, res) => {
     
     if (result.success) {
         req.session.admin = result.admin;
-        //res.status(200).send("Logged in successfully");
-        res.redirect('/');
+        //res.status(200).send("Logged in successfully"););
+        res.render('dashboard.html', { isAuthenticated: true });
     } else {
         res.status(401).send(result.message);
     }
 });
 
-app.get('/logout', isAuthenticated, (req, res) => {
+app.post('/logout', isAuthenticated, (req, res) => {
     req.session.destroy(err => {
         if (err) {
-            return res.status(500).send("Logout failed");
+            return res.status(500).json({ success: false, message: "Logout failed" });
         }
-        res.status(200).send("Logged out successfully");
+        res.status(200).json({ success: true, message: "Logged out successfully" });
     });
 });
 
@@ -131,51 +156,78 @@ app.get('/get_admin' , async (req, res) => {
     const admin = await GetAdmin();
     res.json(admin);
 });
+
+app.get("/course_page", async (req, res) => {
+    res.render("courses.html");
+})
+
+app.get("/lecturer_page", async (req, res) => {
+    res.render("lecturer.html")
+})
+
+app.get("/student_page", async (req, res) => {
+    res.render('student.html')
+})
+
+app.get("/admin_page", async(req, res) => {
+    res.render('admin.html');
+})
+
+app.get("/all_students", async (req, res) => {
+    const students = await AllStudents();
+    res.render('student.html', { students: students[0] });
+});
+
+
+app.post("/add_student", async (req, res) => {
+    const { id, name} = req.body;
+    console.log("server:" + req.body.id + " " + req.body.name);
+    const result = await AddStudent(id, name);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+});
+
+app.delete("/delete_student/:id", async (req, res) => {
+    const studentId = req.params.id;
+    //console.log("serverside:" + studentId);
+    const result = await DeleteStudent(studentId);
+    if (result) {
+        res.json({ success: true, message: 'Student deleted successfully' });
+    } else {
+        res.json({ success: false, message: 'Failed to delete student' });
+    }
+});
+
+app.post("/update_student/:id", async (req, res) => {
+    const studentId = req.params.id;
+    const { newName } = req.body;
+    const result = await updateStudentInfo(studentId, newName);
+    if (result) {
+        const students = await AllStudents();
+        res.render('student.html', { students: students[0] });
+    } else {
+        res.status(400).send('Update failed');
+    }
+});
+
+app.post("/search_student/", async (req, res) => {
+    const {search} = req.body;
+    console.log("search for: " + search);
+    const students = await searchStudents(search);
+    if (students) {
+        res.render('student.html', { searchedStudents: students, searchTerm: search });
+    } else {
+        res.status(404).send('No Student found');
+    }
+});
+
 app.get("/all_courses",async (req, res) => {
     const courses= await GetAllCourses();
     res.json(courses);
 })
-
-app.get("/get_student_courses/:sid", isAuthenticated, async (req, res) => {
-    const sid= req.params.sid
-    const courses= await StudentGetCourses(sid)
-    res.send(courses) 
-})
-
-app.get("/get_lecturer_courses/:lid", isAuthenticated,async (req, res) => {
-    const lid = req.params.lid
-    const courses= await LectGetCourses(lid)
-    res.send(courses) 
-})
-
-app.get("/get_all_members/:cid", isAuthenticated, async (req, res) => {
-    const cid = req.params.cid
-    const members= await AllMembers(cid)
-    res.send(members) 
-})
-
-app.post("/add_course", isAuthenticated, async (req, res) => {
-    const { cid, cname} = req.body
-    const course = await AddCourse(cid, cname)
-   res.status(201).send(course)
-
-})
-
-app.post("/register/:cid/:sid",isAuthenticated, async (req, res) => {
-    const cid = req.params.cid
-    const sid = req.params.sid
-    const student = await Register(cid, sid)
-   res.status(201).send(student)
-})
-
-app.put("/assign_lect",isAuthenticated, async (req, res) => {
-    const { cid, lid} = req.body
-    const course = await AssignLect(cid, lid)
-   res.status(201).send(course)
-
-})
-
-
 
 app.listen (5000, () => {
     console.log('Server is running on port 5000')

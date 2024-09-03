@@ -71,43 +71,60 @@ async function AllStudents(){
     return students;
 }
 async function AddStudent(sid, sname){
-    const newStudent = await pool.query("INSERT INTO student(StudentID, Name) VALUES(${sid}, ${sname}) ")
-    return GetStudent(sid);
+    // First, check if the student already exists
+    const [existingStudent] = await pool.query("SELECT * FROM student WHERE StudentID = ?", [sid]);
+    
+    if (existingStudent.length > 0) {
+        return { success: false, message: "Student with this ID already exists" };
+    }
+    
+    const newStudent = await pool.query("INSERT INTO student(StudentID, Name) VALUES(?, ?)", [sid, sname]);
+    return { success: true, message: "Student was succesfully added" };
+}
+
+async function DeleteStudent(sid){
+    const student = await pool.query("DELETE FROM student WHERE StudentID = ? ", [sid]);
+    return student[0].affectedRows > 0;
+}
+
+async function updateStudentInfo(sid, updatedInfo) {
+    const result = await pool.query("UPDATE student SET Name = ? WHERE StudentID = ?", [updatedInfo, sid]);
+        // Check if any rows were affected
+    const show = await pool.query("SELECT * FROM student WHERE StudentID = ?", [sid]);
+    return show;
 }
 
 async function GetStudent(sid){
-    const student = await pool.query("SELECT * FROM student WHERE StudentID = ${sid} ");
+    const student = await pool.query("SELECT * FROM student WHERE StudentID = ?", [sid]);
     return student;
-}
-
-async function AllLecturers(){
-    const lecturer = await pool.query("SELECT * FROM lecturer;");
-    return lecturer;
-}
-/*
-async function AddLecturer(lname){
-    const newStudent = await pool.query("INSERT INTO student(StudentID, Name) VALUES(${sid}, ${sname}) ")
-    return GetStudent(sid);
-}
-*/
-async function AddCourse(cid, cname){
-    const newCourse = await pool.query("INSERT INTO course(CourseID,CourseName,LecturerID) VALUES(${cid}, ${cname}, NULL) ");
-    return GetCourse(cid);
-}
-
-async function GetCourse(cid){
-    const course = await pool.query("SELECT * FROM course WHERE CourseID = ${cid};");
-    return course;
-}
-
-async function GetAllCourses(){
-    const allCourses = await pool.query("SELECT * FROM course;");
-    return allCourses;
 }
 
 async function StudentGetCourses(sid){
     const courses = await pool.query("SELECT CourseID FROM enroll where StudentID= ${sid}");
     return courses;
+}
+
+async function GetLecturer(lid){
+    const lecturer = await pool.query("SELECT * FROM lecturer WHERE LecturerID = ${lid} ");
+    return lecturer;
+}
+async function AllLecturers(){
+    const lecturer = await pool.query("SELECT * FROM lecturer;");
+    return lecturer;
+}
+
+async function AddLecturer(lname){
+    const newLecturer = await pool.query("INSERT INTO lecturer( Name) VALUES(${lid}, ${lname}) ")
+    return GetLecturer(lid);
+}
+ 
+async function DeleteLecturer(lid){
+    const lecturer = await pool.query("Remove * from lecturer where LecturerID== ${lid}");
+    return "Lecturer deleted";
+}
+
+async function UpdateLecturer(lname){
+    const lecturer= await pool.query("Update lecturer Where Lecturer ID",[lid])
 }
 
 async function LectGetCourses(lid){
@@ -136,6 +153,47 @@ async function AssignLect(cid , lid){
     }
 }
 
+async function getLecturerWorkload() {
+    const [result] = await pool.query(`
+        SELECT l.LecturerID, l.Name, COUNT(c.CourseID) as CourseCount
+        FROM lecturer l
+        LEFT JOIN course c ON l.LecturerID = c.LecturerID
+        GROUP BY l.LecturerID, l.Name
+    `);
+    return result;
+}
+
+async function AddCourse(cid, cname){
+    const newCourse = await pool.query("INSERT INTO course(CourseID,CourseName,LecturerID) VALUES(${cid}, ${cname}, NULL) ");
+    return GetCourse(cid);
+}
+
+async function DeleteCourse(cid){
+    const course = await pool.query("DELETE FROM course WHERE CourseID = ? ", [cid]);
+    return course;
+}
+
+async function GetCourse(cid){
+    const course = await pool.query("SELECT * FROM course WHERE CourseID = ${cid};");
+    return course;
+}
+
+async function GetAllCourses(){
+    const allCourses = await pool.query("SELECT * FROM course;");
+    return allCourses;
+}
+
+async function GetCourseEnrollment() {
+    const [result] = await pool.query(`
+        SELECT c.CourseID, c.CourseName, COUNT(e.StudentID) as EnrolledCount
+        FROM course c
+        LEFT JOIN enroll e ON c.CourseID = e.CourseID
+        GROUP BY c.CourseID, c.CourseName
+    `);
+    return result;
+}
+
+
 async function ShowEnroll(sid,cid){
     const course = await pool.query("SELECT * FROM enrol WHERE CourseID = ${cid} and StudentID = ${sid};");
     return course;
@@ -157,14 +215,43 @@ async function Register(cid , sid){
     }
 }
 
-async function AllMembers(cid){
+async function CourseMembers(cid){
     const members = await pool.query("SELECT student.StudentID, student.name FROM enroll JOIN Student ON enroll.sid = student.sid WHERE enroll.cid = ${cid};");
     return members;
 }
 
-export { login, 
-    AddCourse, GetAllCourses, StudentGetCourses,
-     LectGetCourses, AssignLect,Register,
-      AllMembers, AllStudents,
-       AddStudent, GetStudent, AllLecturers,
-        GetCourse, isAdminTableEmpty,addAdmin, GetAdmin };
+async function searchStudents(searchTerm) {
+    const [results] = await pool.query(
+        "SELECT * FROM student WHERE Name LIKE ? OR StudentID LIKE ?",
+        [`%${searchTerm}%`, `%${searchTerm}%`]
+    );
+    return results;
+}
+
+export { 
+    login, 
+    AddCourse, 
+    GetAllCourses, 
+    StudentGetCourses,
+    LectGetCourses, 
+    AssignLect,
+    Register,
+    CourseMembers, 
+    AllStudents,
+    AddStudent, 
+    GetStudent, 
+    AllLecturers,
+    GetCourse, 
+    isAdminTableEmpty,
+    addAdmin, 
+    GetAdmin,
+    DeleteStudent,
+    updateStudentInfo,
+    GetLecturer,
+    DeleteLecturer,
+    getLecturerWorkload,
+    DeleteCourse,
+    GetCourseEnrollment,
+    ShowEnroll,
+    searchStudents
+};

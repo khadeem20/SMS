@@ -1,3 +1,10 @@
-1. Work on logout
-2. Add admin dashboard
-3. Add more db functionalities
+0. Fix how current functions are rendered.
+3. Add more complex functionsThings.
+4. Add styling.
+
+
+2.fix add functionality
+
+0.fix logout
+1. fix deletee functionality
+2. adjust update functionality

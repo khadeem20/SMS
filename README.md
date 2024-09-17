@@ -1,22 +1,79 @@
-This is  a simple web app displaying CRUD capabilities, simple authentication (session management), HTML(including nunjucks templating), Javascript(js.express, AJAX), Database Management (MY SQL).
-**Quick Run**
-Create a .env file containing your database info
-  Run the create_sql.js file to quickly generate an sql file which can then be run directly in your preffered dbs to create an empty admin table, a student table, a lecturer, course and enroll table.
-  The app it self can then be ran using "npx nodemon static/js/app.js" (allows the the app to autorestart when changes are done) or "nodemon static/js/app.js" (standard).
+This is a simple web app demonstrating basic CRUD capabilities, authentication (session management), templating with HTML and Nunjucks, AJAX requests, and database management using MySQL. The system allows users to manage admins, students, lecturers, cou
 
-1. A brief description of each major feature or functionality.
-      - Authentication -> The app has session management. Only authorized users are allowed to login. Without logining in one has no access to the features.
-      - Creating -> Creating an admin, student, lecturer, course
-      - Reading/Getting-> get/ search for one or all student,lecturers, courses, admins.
-      - Updating-> Change the name of student,lecturers, courses. Assign/unassign a lecturer to a course.
-      - Deleting  -> Remove a student,lecturers or courses.
+**Quick Run**
+1. Create a .env file containing your database information (detailed below).
+
+2. Run the create_sql.js file to quickly generate an SQL file. This SQL file can be used in your preferred DBMS to create the following tables: admin, student, lecturer, course, and enroll.
+
+3. Start the app using:
+  - npx nodemon static/js/app.js (recommended for automatic restarts upon code changes)
+  - or nodemon static/js/app.js (for standard running).
+ 
+
+**Features**
+**Authentication**
+- The app uses session management to restrict access to authorized users only. Without logging in, users cannot access key features of the system.
+
+**CRUD Operations**
+- Create: Add new admins, students, lecturers, and courses. Enroll Students in Courses.
+- Read/Get: Search for one or all students, lecturers, courses, or admins. Display lists of students, courses, and lecturers.
+- Update: Modify the name of a student, lecturer, or course. Assign or unassign lecturers to/from courses.
+- Delete: Remove students, lecturers, or courses from the system. Unenroll students from courses.
+
+**Database Management**
+The app interacts with a MySQL database for data persistence. The following tables are used:
+- admin: Stores admin credentials.
+- student: Stores student details.
+- lecturer: Stores lecturer details.
+- course: Stores course details.
+- enroll: Stores student-course enrollments.
     
-3. System requirements or prerequisites (e.g., Node.js version, MySQL version).
-4. Detailed installation steps, including how to install dependencies.
-5. Configuration instructions
-   -Create a .env file containing your database information.
-    MYSQL_HOST= ''
-    MYSQL_USER= ''
-    MYSQL_PASSWORD= ''
-    MYSQL_DATABASE= ''
-6. Known issues or limitations.
+**System Requirements**
+Node.js: Version 14.x or later.
+MySQL: Version 8.x or later.
+Nodemon: For development purposes (optional but recommended).
+
+**Installation Steps**
+1. Clone the repository.
+  git clone https://github.com/yourusername/school-management-system.git
+  cd school-management-system
+
+2. Install Dependencies: Make sure you have Node.js and MySQL installed. Then, install the required packages:
+  npm install
+
+3. Create .env file: Create a .env file in the root of your project with the following variables:
+  MYSQL_HOST= 'your_mysql_host'
+  MYSQL_USER= 'your_mysql_username'
+  MYSQL_PASSWORD= 'your_mysql_password'
+  MYSQL_DATABASE= 'your_mysql_database'
+
+4. Generate SQL File and Setup the Database: Run the create_sql.js file to generate the necessary SQL commands:
+  node create_sql.js
+
+5. Run the App: Start the app using:
+  npx nodemon static/js/app.js
+or 
+  nodemon static/js/app.js
+
+
+
+
+
+**Configuration instructions**
+- Database Configuration: As mentioned in the .env section, you need to set the correct MySQL credentials.
+- Nunjucks Templating: The app uses Nunjucks for rendering dynamic HTML pages. 
+   
+
+**Known Issues or Limitations**
+- Session Timeout: Sessions are currently not timed, so users may remain logged in indefinitely.
+
+- No Validation on Forms: Some forms may lack proper input validation, leading to issues like empty fields being submitted.
+
+- No CSS: The app lacks CSS styling, resulting in a barebones interface.
+
+**Additional Features**
+- AJAX Handling: The app uses AJAX requests for asynchronous operations such as enrolling or unenrolling students without refreshing the page, along with alerts being returned telling the user whether the operation was successful or not.
+
+- Error Handling: The app includes error handling for various scenarios, such as invalid credentials, attempts to create duplicate records, and more.
+
+- Session Management: Admins are authenticated using sessions, preventing unauthorized access.

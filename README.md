@@ -71,6 +71,8 @@ or
 
 - No CSS: The app lacks CSS styling, resulting in a barebones interface.
 
+- Authentication: Authentication has not been added to all routes. This is deliberate to allow ease of testing. When the creator is satisfied with the state of the app, this will be added.
+
 **Additional Features**
 - AJAX Handling: The app uses AJAX requests for asynchronous operations such as enrolling or unenrolling students without refreshing the page, along with alerts being returned telling the user whether the operation was successful or not.
 

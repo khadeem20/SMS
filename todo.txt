@@ -1,10 +1,36 @@
-0. Fix how current functions are rendered.
-3. Add more complex functionsThings.
-4. Add styling.
+
+0. push
+0. make sure only valid ids are added.
+0. ADD AUTHENTICAITON TO ALL ROUTES
+0. Add table to student page
 
 
-2.fix add functionality
+0. basic lecturer functions
+0. unenroll students
+0.view all courses a lecturer is assigned to
+0. unassign a lecturer from the lectures page
+0. view all courses a student is enrolled in
+0. unenroll students from the student's course listing
+0. unenrolling a student from the student page gives an error even tho it is successful
 
-0.fix logout
-1. fix deletee functionality
-2. adjust update functionality
+
+
+Features!
+-search for a course
+-delete a course
+-update course name
+-enroll student
+-unenroll students
+-view all courses a student is enrolled in a course
+-view all courses
+0. assign a lecturer
+0. unassign a lecturer
+
+
+-view all students
+-delete student
+-update student name
+-search for a student
+
+
+

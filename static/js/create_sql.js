@@ -32,9 +32,9 @@ CREATE TABLE lecturer(
 );
 
 CREATE TABLE enroll (
+  EnrollmentID INT PRIMARY KEY AUTO_INCREMENT,
   CourseID VARCHAR(10),
   StudentID VARCHAR(10),
-  PRIMARY KEY (CourseID, StudentID),
   FOREIGN KEY (CourseID) REFERENCES course(CourseID),
   FOREIGN KEY (StudentID) REFERENCES student(StudentID)
 );

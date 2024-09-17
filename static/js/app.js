@@ -11,9 +11,8 @@ import  {login,
     GetAllCourses, 
     StudentGetCourses,
     LectGetCourses, 
-    AssignLect,
-    Register,
-    CourseMembers, 
+    AssignLecturer, 
+    unAssignLecturer,
     AllStudents,
     AddStudent, 
     GetStudent, 
@@ -24,14 +23,23 @@ import  {login,
     GetAdmin,
     DeleteStudent,
     updateStudentInfo,
-    GetLecturer,
-    DeleteLecturer,
     getLecturerWorkload,
     DeleteCourse,
     GetCourseEnrollment,
     ShowEnroll,
-    searchStudents  }
+    searchStudents, 
+    enroll,
+    unenroll,
+    updateCourse,
+    searchCourses,
+    searchLecturers,
+    AddLecturer,
+    GetLecturer,
+    UpdateLecturer,
+    DeleteLecturer,
+}
     from './database.js';
+import { Console } from 'console';
 
 
 const app = express();
@@ -206,8 +214,7 @@ app.post("/update_student/:id", async (req, res) => {
     const { newName } = req.body;
     const result = await updateStudentInfo(studentId, newName);
     if (result) {
-        const students = await AllStudents();
-        res.render('student.html', { students: students[0] });
+        res.redirect('/all_students');
     } else {
         res.status(400).send('Update failed');
     }
@@ -224,12 +231,189 @@ app.post("/search_student/", async (req, res) => {
     }
 });
 
+app.get("/student_courses/:id", async (req, res) => {
+    const studentID = req.params.id;
+    // console.log("app.js:  " + studentID);
+    const courses = await StudentGetCourses(studentID);
+    res.json(courses);
+});
+
 app.get("/all_courses",async (req, res) => {
     const courses= await GetAllCourses();
-    res.json(courses);
+    res.render('courses.html', { courses: courses[0] });
 })
 
-app.listen (5000, () => {
+
+app.post("/enroll_student/:courseID", async (req, res)=>{
+    const StudentID = req.body.StudentID;
+    const courseID = req.params.courseID;
+    const result = await enroll(StudentID, courseID);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+})
+
+app.delete("/unenroll_student/:courseID/:studentID", async (req, res) => {
+    const courseID = req.params.courseID;
+    const studentID = req.params.studentID;
+    console.log("server:" + courseID + " " + studentID);
+    const result = await unenroll(courseID, studentID);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+});
+
+//course related routes
+
+app.post("/add_course", async (req, res) => {
+    const { id, name} = req.body;
+    //console.log("server:" + req.body.id + " " + req.body.name);
+    const result = await AddCourse(id, name);
+    if (result) {
+        res.json({ success: true, message: result.message});
+    }
+    else {
+        res.json({ success: false, message: result.message });
+    }
+})
+app.post("/update_course/:id", async (req, res) => {
+    const courseID = req.params.id;
+    const { newName } = req.body;
+    const result = await updateCourse(courseID, newName);
+    if (result) {
+        res.redirect('/all_courses');
+    } else {
+        res.status(400).send('Update failed');
+    }
+});
+
+app.delete("/delete_course/:cid", async (req, res) => {
+    const courseID = req.params.cid;
+    console.log("serverside:" + courseID);
+    const result = await DeleteCourse(courseID);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+});
+app.post("/search_course/", async (req, res) => {
+    const {search} = req.body;
+    console.log("Searching for: " + search);
+
+    const courses = await searchCourses(search);
+    console.log("Search results:", courses);
+
+    if (courses && courses.length > 0) {
+        //console.log("Rendering courses with results");
+        res.render('courses.html', { searchedCourses: courses, searchTerm: search });
+    } else {
+        //console.log("Rendering courses with no results message");
+        res.render('courses.html', { 
+            searchedCourses: [], 
+            searchTerm: search, 
+            message: 'No courses found matching your search criteria.' 
+        });
+    }
+});
+
+app.get("/course_enrollment/:cid", async (req, res) => {
+    const cid = req.params.cid;
+    //console.log("Course ID:", cid);
+    const enrollment = await GetCourseEnrollment(cid);
+    res.json(enrollment);
+})
+
+app.post("/assign_lecturer/:cid", async (req, res) => {
+    const cid = req.params.cid;
+    const lecturerID = req.body.LecturerID;
+    //console.log("Course ID:", cid);
+    //console.log("Lecturer ID:", lecturerID);
+    const result = await AssignLecturer(cid, lecturerID);
+    //console.log("Result:", result);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }                    
+})
+
+app.put("/unAssign_lecturer/:cid", async (req, res) => {
+    const cid = req.params.cid;
+    console.log("Course ID:", cid);
+    const result = await unAssignLecturer(cid);
+    console.log("Result:", result);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }                    
+})
+
+app.post("/search_lecturer/", async (req, res) => {
+    const {search} = req.body;
+    console.log("search for: " + search);
+    const lecturers = await searchLecturers(search);
+    if (lecturers) {
+        res.render('lecturer.html', { searchedLecturers: lecturers, searchTerm: search });
+    } else {
+        res.status(404).send('No Lecturer found');
+    }
+});
+
+app.get("/all_lecturers",async (req, res) => {
+    const lecturers= await AllLecturers();
+    res.render('lecturer.html', { lecturers: lecturers [0] });
+})
+
+app.post("/add_lecturer", async (req, res) => {
+    const { id, name} = req.body;
+    //console.log("server:" + req.body.id + " " + req.body.name);
+    const result = await AddLecturer(id, name);
+    if (result) {
+        console.log("server:" + result.message);
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+});
+
+app.delete("/delete_lecturer/:id", async (req, res) => {
+    const lecturerId = req.params.id;
+    //console.log("serverside:" + lecturerId);
+    const result = await DeleteLecturer(lecturerId);
+    if (result) {
+        res.json({ success: true, message: result.message });
+    } else {
+        res.json({ success: false, message: result.message });
+    }
+});
+
+app.post("/update_lecturer/:id", async (req, res) => {
+    const lecturerId = req.params.id;
+    const { newName } = req.body;
+    const result = await UpdateLecturer(lecturerId, newName);
+    if (result) {
+        res.redirect('/all_lecturers');
+    } else {
+        res.status(400).send('Update failed');
+    }
+});
+
+app.get("/lecturer_assignments/:lid", async (req, res) => {
+    const lid = req.params.lid;
+    //console.log("Lecturer ID:", lid);
+    const assignments = await LectGetCourses(lid);
+    res.json(assignments);
+})
+
+
+
+    app.listen (5000, () => {
     console.log('Server is running on port 5000')
 })
 

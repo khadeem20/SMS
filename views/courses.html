@@ -1,4 +1,93 @@
 {% extends 'base.html'%}
 {% block content %}
 
+<ul>
+
+    <li><a href="">Search</a></li>
+        <form class="course-search-form" action="/search_course" method="POST">
+            <div>
+                <label for="search">Course Name or Course ID</label>
+            <input type="text" name="search" id="search" required>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+    <div> 
+    {% if searchedCourses %}
+        <h3>Search Results for "{{ searchTerm }}":</h3>
+        <ol class="searchedCourses">
+            {% for course in searchedCourses %}
+            <li class="searchedCourse">
+                {{ course.CourseID }} &nbsp;&nbsp; {{ course.CourseName }} &nbsp;&nbsp; {{course.LecturerID}}
+                <button class="view-enrollment" data-cid={{ course.CourseID }} >View Enrollment</button>
+                <ol class="enrollment-list" id="enrollment-{{ course.CourseID }}" style="display: none;">
+
+                </ol>
+            </li>
+            {% endfor %}
+
+            
+        </ol>
+    {% endif %}
+    </div>
+
+    
+    <li>Add Course</li>
+    <form class="add-course" method="POST" action="/add_course"></form>
+        <div>
+            <label for="id">Course ID:</label>
+        <input type="text" name="id" id="id" required>
+
+        </div>
+        <div>
+            <label for="name">Course Name:</label> 
+        <input type="text" name="name" id="name" required>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+            <li><a href="/all_courses">Course List</a></li>
+            <table class="courses" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Course ID</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Course Name</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Lecturer ID</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr class="course">
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ course.CourseID }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ course.CourseName }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ course.LecturerID }} 
+                            <button class="unAssign" data-cid="{{ course.CourseID }}" >Unassign</button>
+                        </td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">
+                            <button class="update-course" data-cid="{{ course.CourseID }}" data-cname="{{ course.CourseName }}">Update</button>
+                            <form id="updateForm-{{ course.CourseID }}" style="display: none;" action="/update_course/{{ course.CourseID }}" method="POST">
+                                <input type="text" name="newName" placeholder="New name" required>
+                                <button type="submit">Confirm Update</button>
+                            </form>
+                            
+                            <button class="delete-course" data-cid="{{ course.CourseID }}">Delete</button>
+
+                            <button class="assign-lecturer" data-cid="{{ course.CourseID }}" data-cname="{{ course.CourseName }}">Assign Lecturer</button>
+                            <form id="lecturerAssignmentForm-{{ course.CourseID }}" style="display: none;" action="/assign_lecturer/{{ course.CourseID }}" method="POST" required>
+                                <input type="text" name="LecturerID" placeholder="Enter Lecturer ID">
+                                <button type="submit">Submit</button>
+                            </form>
+
+                            <button class="enroll-student" data-cid="{{ course.CourseID }}" data-cname="{{ course.CourseName }}">Enroll Student</button>
+                            <form id="enrollForm-{{ course.CourseID }}" style="display: none;" action="/enroll_student/{{ course.CourseID }}" method="POST">
+                                <input type="text" name="StudentID" placeholder="Enter Student ID" required>
+                                <button type="submit">Submit</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+</ul>
 {% endblock %}

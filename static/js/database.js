@@ -78,8 +78,14 @@ async function AddStudent(sid, sname){
         return { success: false, message: "Student with this ID already exists" };
     }
     
-    const newStudent = await pool.query("INSERT INTO student(StudentID, Name) VALUES(?, ?)", [sid, sname]);
+    try{
+        const newStudent = await pool.query("INSERT INTO student(StudentID, Name) VALUES(?, ?)", [sid, sname]);
     return { success: true, message: "Student was succesfully added" };
+    }
+    catch(error){
+        console.error('Error in addStudent:', error.message);
+        throw error; // Re-throw the error to be caught by the route handler
+    }
 }
 
 async function DeleteStudent(sid){
@@ -100,8 +106,17 @@ async function GetStudent(sid){
 }
 
 async function StudentGetCourses(sid){
-    const courses = await pool.query("SELECT CourseID FROM enroll where StudentID= ${sid}");
-    return courses;
+    // console.log("database.js: StudentGetCourses - sid:", sid);
+    const [courses] = await pool.query("SELECT CourseID FROM enroll where StudentID=?", [sid]);
+    if (courses.length > 0) {
+        const courseIds = courses.map(course => course.CourseID);
+        const [result] = await pool.query(
+            "SELECT CourseID, CourseName FROM course WHERE CourseID IN (?)",[courseIds]);
+        return result;
+    }
+    else {
+        return [];
+    }
 }
 
 async function GetLecturer(lid){
@@ -109,50 +124,88 @@ async function GetLecturer(lid){
     return lecturer;
 }
 async function AllLecturers(){
-    const lecturer = await pool.query("SELECT * FROM lecturer;");
-    return lecturer;
+    const lecturers = await pool.query("SELECT * FROM lecturer;");
+    return lecturers;
 }
 
-async function AddLecturer(lname){
-    const newLecturer = await pool.query("INSERT INTO lecturer( Name) VALUES(${lid}, ${lname}) ")
-    return GetLecturer(lid);
+async function AddLecturer(lid,lname){
+    // First, check if the lecturer already exists
+    const [existingLecturer] = await pool.query("SELECT * FROM lecturer WHERE LecturerID = ?", [lid]);
+    if (existingLecturer.length > 0) {
+        return { success: false, message: "Lecturer with this ID already exists" };
+    }
+    try {
+        const newLecturer = await pool.query("INSERT INTO lecturer( LecturerID,Name) VALUES(?,?)", [lid, lname]);
+        return { success: true, message: lname + " was succesfully added" };
+    } catch (error) {
+        console.error('Error in addLecturer:', error.message);
+        throw error; // Re-throw the error to be caught by the route handler
+    }
 }
  
 async function DeleteLecturer(lid){
-    const lecturer = await pool.query("Remove * from lecturer where LecturerID== ${lid}");
-    return "Lecturer deleted";
+    const lecturer = await pool.query("DELETE FROM lecturer where LecturerID = ?", [lid]);
+    console.log("database file-->" + lecturer);
+    return lecturer[0].affectedRows > 0;
 }
 
-async function UpdateLecturer(lname){
-    const lecturer= await pool.query("Update lecturer Where Lecturer ID",[lid])
+async function UpdateLecturer(lid, lname){
+    const result = await pool.query("UPDATE lecturer SET Name = ? WHERE LecturerID = ?", [lname, lid]);
+        // Check if any rows were affected
+    const show = await pool.query("SELECT * FROM lecturer WHERE LecturerID = ?", [lid]);
+    return show;    
 }
 
 async function LectGetCourses(lid){
-    const courses = await pool.query("SELECT CourseID, CourseName FROM course where LecturerID = ${lid};");
+    // console.log("database file-->" + lid);
+    const [courses] = await pool.query("SELECT CourseID, CourseName FROM course where LecturerID = ?", [lid]);
     return courses;
 }
 
 //lid = 5; sid=6
-async function AssignLect(cid , lid){
-    //add functionality that tell if there's already a lecturer registered for course
-    //add functionality that tells if its a lecturer or student
-    
-
-    if (sid.toString().charAt === '6'){
-    
-        const lecturer= await pool.query
-        ('IF (SELECT COUNT(CourseName) course where LecturerID = ${lid}) <= 5 AND (SELECT LecturerID FROM course WHERE CourseID = ${cid}) IS NULL THEN UPDATE course SET LecturerID = ${lid} WHERE CourseID = ${cid}; END IF;')
-        .catch((e) => {
-            console.log(e);
-            return false;
-        });
-        return GetCourse(cid)
+async function AssignLecturer(cid , lid){
+    //check if the id is a lecturer
+    const [isLecturer] = await pool.query("SELECT * FROM lecturer WHERE LecturerID = ? ", [lid]);
+    if (isLecturer.length === 0){
+        return { success: false, message: "Not a Lecturer" };
     }
-    else{
-        return 'Not a lecturer!!'
+    //check if the lecturer is already assigned to the course
+    const [assignment]= await pool.query("SELECT * FROM course WHERE CourseID = ? AND LecturerID = ?", [cid,lid]);
+    if (assignment.length > 0){
+        return { success: false, message: 'Lecturer is already assigned to the course.' };   
+    }
+
+    try{
+        const [result] = await pool.query("UPDATE course SET LecturerID = ? WHERE CourseID = ?", [lid, cid]);
+        return { success: true, message: "Lecturer assigned successfully" };
+    } catch (error) {
+        console.error("Error in AssignLect:", error);
+        return { success: false, message: "An error occurred during lecturer assignment" };
     }
 }
 
+async function unAssignLecturer(cid){
+    //check if a lecturer is assigned to the course
+    const [assignment]= await pool.query("SELECT * FROM course WHERE CourseID = ? AND LecturerID IS NOT NULL", [cid]);
+    if (assignment.length === 0){
+        return { success: false, message: 'No lecturer is assigned to the course.' };
+    }
+    try{
+        const [result] = await pool.query("UPDATE course SET LecturerID = NULL WHERE CourseID = ?", [cid]);
+        return { success: true, message: "Lecturer unassigned successfully" };
+    } catch (error) {
+        console.error("Error in unAssignLect:", error);
+        return { success: false, message: "An error occurred during lecturer unassignment" };
+    }
+}
+
+async function searchLecturers(searchTerm) {
+    const [results] = await pool.query(
+        "SELECT * FROM lecturer WHERE Name LIKE ? OR LecturerID LIKE ?",
+        [`%${searchTerm}%`, `%${searchTerm}%`]
+    );
+    return results;
+}
 async function getLecturerWorkload() {
     const [result] = await pool.query(`
         SELECT l.LecturerID, l.Name, COUNT(c.CourseID) as CourseCount
@@ -163,12 +216,31 @@ async function getLecturerWorkload() {
     return result;
 }
 
+
 async function AddCourse(cid, cname){
-    const newCourse = await pool.query("INSERT INTO course(CourseID,CourseName,LecturerID) VALUES(${cid}, ${cname}, NULL) ");
-    return GetCourse(cid);
+    // First, check if the course already exists
+    const [existingCourse] = await pool.query("SELECT * FROM course WHERE CourseID = ?", [cid]);
+    
+    if (existingCourse.length > 0) {
+        return { success: false, message: "Course already exists" };
+    }
+    
+    try {
+        const newCourse = await pool.query("INSERT INTO course(CourseID,CourseName,LecturerID) VALUES(?, ?, NULL)", [cid, cname]);
+        return { success: true, message: "Course was succesfully added" };
+    } catch (error) {
+        console.error('Error in addCourse:', error.message);
+        throw error; // Re-throw the error to be caught by the route handler
+    }
 }
 
+async function unenrollAllStudents(cid) {
+    // Unenroll all students from the course
+    await pool.query("DELETE FROM enroll WHERE CourseID = ?", [cid]);
+}
 async function DeleteCourse(cid){
+    // Unenroll all students from the course
+    await unenrollAllStudents(cid);
     const course = await pool.query("DELETE FROM course WHERE CourseID = ? ", [cid]);
     return course;
 }
@@ -183,41 +255,77 @@ async function GetAllCourses(){
     return allCourses;
 }
 
-async function GetCourseEnrollment() {
-    const [result] = await pool.query(`
-        SELECT c.CourseID, c.CourseName, COUNT(e.StudentID) as EnrolledCount
-        FROM course c
-        LEFT JOIN enroll e ON c.CourseID = e.CourseID
-        GROUP BY c.CourseID, c.CourseName
-    `);
-    return result;
+async function GetCourseEnrollment(cid) {
+    const [enrollments] = await pool.query("SELECT StudentID FROM enroll WHERE CourseID = ?", [cid]);
+    
+    if (enrollments.length > 0) {
+        const studentIds = enrollments.map(enrollment => enrollment.StudentID);
+        const [students] = await pool.query(
+            "SELECT StudentID, Name FROM student WHERE StudentID IN (?)",[studentIds]);
+        return students;
+    } 
+    else {
+        return [];
+    }
 }
 
+async function ShowEnroll(cid){
+    const courses = await pool.query("SELECT * FROM enroll WHERE StudentID = ?;", [sid]);
+    return courses;
+}
 
-async function ShowEnroll(sid,cid){
-    const course = await pool.query("SELECT * FROM enrol WHERE CourseID = ${cid} and StudentID = ${sid};");
+async function enroll(sid, cid) {
+    console.log("Enrolling student:", sid, "in course:", cid);
+    // Check if the student is already enrolled in the course
+    const [existingEnrollment] = await pool.query("SELECT * FROM enroll WHERE StudentID = ? AND CourseID = ?", [sid, cid]);
+    if (existingEnrollment.length > 0) {
+        return { success: false, message: "Student is already enrolled in the course" };
+    }
+
+    //Check if student exists
+    const [student] = await GetStudent(sid);
+    if (!student) {
+        return { success: false, message: "Student not found" };
+    }
+
+    try {
+        await pool.query("INSERT INTO enroll(StudentID, CourseID) VALUES(?, ?)", [sid, cid]);
+        return { success: true, message: "Enrollment successful" };
+    } catch (error) {
+        console.error("Error enrolling student:", error);
+        return { success: false, message: "Enrollment failed" };
+    }
+}
+
+async function unenroll(cid, sid) {
+    // Check if the student is enrolled in the course
+    console.log("Checking enrollment for:", { sid, cid }); // 
+    const [existingEnrollment] = await pool.query("SELECT * FROM enroll WHERE StudentID = ? AND CourseID = ?", [sid, cid]);
+    console.log("Existing Enrollment:", existingEnrollment); 
+    if (existingEnrollment.length === 0) {
+        return { success: false, message: "Student is not enrolled in the course" };
+    }
+
+    try {
+        await pool.query("DELETE FROM enroll WHERE StudentID = ? AND CourseID = ?", [sid, cid]);
+        return { success: true, message: sid + "Unenrolled successful from course: " + cid };
+    } catch (error) {
+        console.error("Error unenrolling student:", error);
+        return { success: false, message: "Unenrollment failed" };
+    }
+}
+
+async function updateCourse(cid, cname){
+    const course = await pool.query("UPDATE course SET CourseName = ? WHERE CourseID = ?;", [cname, cid]);
     return course;
 }
 
-async function Register(cid , sid){
-   
-    if (sid.toString().charAt === '5'){
-    
-        const student = await pool.query('IF NOT EXISTS (SELECT * FROM enroll WHERE CourseID = ${cid} and StudentID = ${sid}) and (SELECT COUNT(StudentID) FROM enroll where StudentID = ${sid} <= 6 THEN INSERT INTO enroll (CourseID, StudentID) VALUES (${cid}, ${sid)}; END IF')
-        .catch((e) => {
-            console.log(e);
-            return false;
-        });
-        return ShowEnroll(cid,sid)
-    }
-    else{
-        return 'Not a student!!'
-    }
-}
-
-async function CourseMembers(cid){
-    const members = await pool.query("SELECT student.StudentID, student.name FROM enroll JOIN Student ON enroll.sid = student.sid WHERE enroll.cid = ${cid};");
-    return members;
+async function searchCourses(searchTerm) {
+    const [results] = await pool.query(
+        "SELECT * FROM course WHERE CourseName LIKE ? OR CourseID LIKE ?",
+        [`%${searchTerm}%`, `%${searchTerm}%`]
+    );
+    return results;
 }
 
 async function searchStudents(searchTerm) {
@@ -234,24 +342,30 @@ export {
     GetAllCourses, 
     StudentGetCourses,
     LectGetCourses, 
-    AssignLect,
-    Register,
-    CourseMembers, 
+    AssignLecturer,
+    unAssignLecturer,
     AllStudents,
     AddStudent, 
     GetStudent, 
     AllLecturers,
+    UpdateLecturer,
     GetCourse, 
     isAdminTableEmpty,
     addAdmin, 
     GetAdmin,
     DeleteStudent,
     updateStudentInfo,
-    GetLecturer,
-    DeleteLecturer,
-    getLecturerWorkload,
     DeleteCourse,
     GetCourseEnrollment,
     ShowEnroll,
-    searchStudents
+    searchStudents,
+    enroll,
+    unenroll,
+    updateCourse,
+    searchCourses,
+    searchLecturers,
+    GetLecturer,
+    DeleteLecturer,
+    getLecturerWorkload,
+    AddLecturer
 };

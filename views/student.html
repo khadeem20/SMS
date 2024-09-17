@@ -16,6 +16,10 @@
             {% for student in searchedStudents %}
             <li class="searchedStudent">
                 {{ student.StudentID }} &nbsp;&nbsp; {{ student.Name }}
+                <button class="view-courses" data-sid={{ student.StudentID }} >View Courses</button>
+                <ol class="course-list" id="courses-{{ student.StudentID }}" style="display: none;">
+
+                </ol>
             </li>
             {% endfor %}
     {% endif %}
@@ -40,11 +44,13 @@
             {% for student in students %}
             <li class="student">
                 {{ student.StudentID }} &nbsp;&nbsp; {{ student.Name }}
+                
                 <button class="update-student" data-sid={{ student.StudentID }} data-sname={{ student.Name }}>Update</button>
                 <form id="updateForm-{{ student.StudentID }}" style="display: none;" action="/update_student/{{ student.StudentID }}" method="POST">
-                    <input type="text" name="newName" placeholder="New name">
+                    <input type="text" name="newName" placeholder="New name" required>
                     <button type="submit">Confirm Update</button>
                 </form>
+
                 <button class="delete-student" data-sid={{ student.StudentID }}>Delete</button>
 
             </li>

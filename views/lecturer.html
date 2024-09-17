@@ -1,13 +1,79 @@
 {% extends 'base.html'%}
 {% block content %}
-
 <ul>
-    <li><a href="/lecturer/search">Search</a></li>
-    <li><a href="/lecturer/all">All Lecturers</a></li>
-    <li><a href="/lecturer/add">Add Lecturer</a></li>
-    <li><a href="/lecturer/update">Update Lecturer Name</a></li>
-    <li><a href="/lecturer/delete">Delete Lecturer</a></li>
+
+    <li><a href="">Search</a></li>
+        <form class="lecturer-search-form" action="/search_lecturer" method="POST">
+            <div>
+                <label for="search">Lecturer Name or Lecturer ID</label>
+            <input type="text" name="search" id="search" required>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+    <div> 
+    {% if searchedLecturers %}
+        <h3>Search Results for "{{ searchTerm }}":</h3>
+        <ol class="searchedLecturers">
+            {% for lecturer in searchedLecturers %}
+            <li class="searchedLecturer">
+                {{ lecturer.LecturerID }} &nbsp;&nbsp; {{ lecturer.Name }}
+                <button class="view-assignments" data-lid={{ lecturer.LecturerID }} >View Assignments</button>
+                <ol class="assignment-list" id="assignment-{{ lecturer.LecturerID }}" style="display: none;">
+
+                </ol>
+            </li>
+            {% endfor %}
+
+            
+        </ol>
+    {% endif %}
+    </div>
+
+    <li>Add Lecturer</li>
+    <form class="addLecturer-form" method="POST" action="/add_lecturer">
+        <div>
+            <label for="id">Lecturer ID:</label>
+        <input type="text" name="id" id="id" required>
+        </div>
+
+        <div>
+            <label for="name">Lecturer Name:</label> 
+        <input type="text" name="name" id="name" required>
+        </div>
+
+        <button type="submit"> Submit</button>
+
+
+    
+        <li><a href="/all_lecturers">Lecturer List</a></li>
+        <table class="lecturers" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Lecturer ID</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Lecturer Name</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lecturer in lecturers %}
+                <tr class="lecturer">
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ lecturer.LecturerID }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ lecturer.Name }}</td>
+                    
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <button class="update-lecturer" data-lid="{{ lecturer.LecturerID }}" data-lname="{{ lecturer.Name }}">Update</button>
+                        <form id="updateForm-{{ lecturer.LecturerID }}" style="display: none;" action="/update_lecturer/{{ lecturer.LecturerID }}" method="POST">
+                            <input type="text" name="newName" placeholder="New name" required>
+                            <button type="submit">Confirm Update</button>
+                        </form>
+                        
+                        <button class="delete-lecturer" data-lid="{{ lecturer.LecturerID }}">Delete</button>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    <li>Add Course</li>
 </ul>
-
-
 {% endblock %}

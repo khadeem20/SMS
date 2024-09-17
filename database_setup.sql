@@ -23,9 +23,9 @@ CREATE TABLE lecturer(
 );
 
 CREATE TABLE enroll (
+  EnrollmentID INT PRIMARY KEY AUTO_INCREMENT,
   CourseID VARCHAR(10),
   StudentID VARCHAR(10),
-  PRIMARY KEY (CourseID, StudentID),
   FOREIGN KEY (CourseID) REFERENCES course(CourseID),
   FOREIGN KEY (StudentID) REFERENCES student(StudentID)
 );
@@ -163,5 +163,3 @@ INSERT INTO course (CourseID, CourseName) VALUES ('20007', 'Mobile Application D
 INSERT INTO course (CourseID, CourseName) VALUES ('20008', 'Operating Systems Concepts');
 INSERT INTO course (CourseID, CourseName) VALUES ('20009', 'Machine Learning Techniques');
 INSERT INTO course (CourseID, CourseName) VALUES ('20010', 'Cloud Computing Essentials');
-
-select * from admin;

@@ -2,16 +2,68 @@
 
 {% block content %}
   <h1>Dashboard</h1>
-  <p>Welcome to your dashboard!</p>
+  <small>Welcome to your dashboard!</small>
 
-  <p>Here you have access to all the application's features.</p>
+  <!--
+  <section id="dashboard">
+    <div class="dashboard card">
+
+    </div>
+    
+  </section>
   <ul>
     <li><a href="/course_page">Courses</a></li>
     <li><a href="lecturer_page">Lecturers</a></li>
     <li><a href="/student_page">Students</a></li>
     <li><a href="/admin_page">Administration</a></li>
   </ul>
-  
+-->
+<section class="row row-cols-1 row-cols-md-4 g-4" id="dashboard">
+  <div class="col">
+      <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+              <i class="fas fa-book fa-3x mb-3 text-primary"></i>
+              <h5 class="card-title">Courses</h5>
+              <p class="card-text">Manage course offerings and schedules</p>
+              <a href="/course_page" class="btn btn-primary">View Courses</a>
+          </div>
+      </div>
+  </div>
+
+  <div class="col">
+      <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+              <i class="fas fa-chalkboard-teacher fa-3x mb-3 text-success"></i>
+              <h5 class="card-title">Lecturers</h5>
+              <p class="card-text">Manage teaching staff</p>
+              <a href="/lecturer_page" class="btn btn-success">View Lecturers</a>
+          </div>
+      </div>
+  </div>
+
+  <div class="col">
+      <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+              <i class="fas fa-user-graduate fa-3x mb-3 text-info"></i>
+              <h5 class="card-title">Students</h5>
+              <p class="card-text">Manage student records</p>
+              <a href="/student_page" class="btn btn-info">View Students</a>
+          </div>
+      </div>
+  </div>
+
+  <div class="col">
+      <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+              <i class="fas fa-cogs fa-3x mb-3 text-danger"></i>
+              <h5 class="card-title">Administration</h5>
+              <p class="card-text">System settings and controls</p>
+              <a href="/admin_page" class="btn btn-danger">View Admin</a>
+          </div>
+      </div>
+  </div>
+</section>
+
 
 
 

@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}School Management System{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    {% include "css_links.html" %}
+    
+    {% block extra_css%} {% endblock %}
+
     {% block head %}{% endblock %}
 </head>
 <body>
     
     <header>
          {% include "header.html" %}
-        <!--<nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About</a></li>
-            </ul>
-        </nav>
-        <!-->
     </header>
 
     <main>
@@ -26,7 +22,7 @@
     </main>
 
     <footer>
-        <p>© {{ year }} My Website. All rights reserved.</p>
+        {% include "footer.html" %}
     </footer>
     
     {% block scripts %}
